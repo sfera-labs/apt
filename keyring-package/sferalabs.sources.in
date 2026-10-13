@@ -1,0 +1,6 @@
+Types: deb
+URIs: @APT_SITE_URL@
+Suites: stable
+Components: main
+Architectures: all
+Signed-By: /usr/share/keyrings/sferalabs-archive-keyring.gpg

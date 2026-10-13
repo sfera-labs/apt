@@ -1,0 +1,71 @@
+name: Publish apt repository
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Operation
+        type: choice
+        required: true
+        options:
+          - publish-latest
+          - promote-to-stable
+          - publish-keyring
+          - resign-suites
+      module_repository:
+        description: Public module repository under sfera-labs, e.g. sfera-labs/strato-pi-max-kernel-module
+        type: string
+        required: false
+      package:
+        description: DKMS package to promote, e.g. stratopimax-dkms
+        type: string
+        required: false
+      version:
+        description: Exact Debian package version to promote, e.g. 1.35-1
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apt-site
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      OPERATION: ${{ inputs.operation }}
+      MODULE_REPOSITORY: ${{ inputs.module_repository }}
+      PACKAGE: ${{ inputs.package }}
+      VERSION: ${{ inputs.version }}
+      APT_SITE_URL: ${{ vars.APT_SITE_URL || 'https://apt.sferalabs.cc' }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Check out apt repository
+        uses: actions/checkout@v5
+
+      - name: Install repository tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y apt-utils curl dpkg-dev gnupg gpgv jq
+
+      - name: Update apt repository
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          APT_SIGNING_KEY: ${{ secrets.APT_SIGNING_KEY }}
+          APT_SIGNING_KEY_PASSPHRASE: ${{ secrets.APT_SIGNING_KEY_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          case "$OPERATION" in
+            publish-latest) test -n "$MODULE_REPOSITORY"; bash scripts/apt-site.sh publish-latest "$MODULE_REPOSITORY" ;;
+            promote-to-stable) test -n "$PACKAGE" && test -n "$VERSION"; bash scripts/apt-site.sh promote "$PACKAGE" "$VERSION" ;;
+            publish-keyring) bash scripts/apt-site.sh publish-keyring ;;
+            resign-suites) bash scripts/apt-site.sh resign ;;
+            *) echo "Unknown operation: $OPERATION" >&2; exit 1 ;;
+          esac

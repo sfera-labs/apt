@@ -1,0 +1,8 @@
+Package: sferalabs-archive-keyring
+Version: @VERSION@
+Section: misc
+Priority: optional
+Architecture: all
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Description: Sfera Labs apt repository keyring and source
+ Installs the public signing key and stable apt source for Sfera Labs packages.
