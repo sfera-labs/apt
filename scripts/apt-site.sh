@@ -13,6 +13,10 @@ SIGNING_FPR=""
 GNUPGHOME=""
 TMP_DIR=""
 
+log_info() {
+	printf '[INFO] %s\n' "$*"
+}
+
 cleanup() {
 	[ -z "$GNUPGHOME" ] || rm -rf "$GNUPGHOME"
 	[ -z "$TMP_DIR" ] || rm -rf "$TMP_DIR"
@@ -37,14 +41,23 @@ git_site() {
 open_site() {
 	local remote="https://github.com/$APT_SITE_REPOSITORY.git" status=0
 	[ ! -e "$SITE_DIR" ] || fail "Site work directory already exists: $SITE_DIR"
-	git_site ls-remote --exit-code --heads "$remote" "$SITE_BRANCH" >/dev/null 2>&1 || status=$?
+	log_info "Checking public repository access and whether branch $SITE_BRANCH exists: $APT_SITE_REPOSITORY"
+	if git ls-remote --exit-code --heads "$remote" "$SITE_BRANCH"; then
+		status=0
+	else
+		status=$?
+	fi
 	case "$status" in
-		0) git_site clone --quiet --branch "$SITE_BRANCH" --depth 1 "$remote" "$SITE_DIR" ;;
+		0)
+			log_info "Cloning existing $SITE_BRANCH branch from $APT_SITE_REPOSITORY"
+			git clone --branch "$SITE_BRANCH" --depth 1 "$remote" "$SITE_DIR"
+			;;
 		2)
-			git init --quiet --initial-branch "$SITE_BRANCH" "$SITE_DIR"
+			log_info "Public repository is accessible but has no $SITE_BRANCH branch; initializing it"
+			git init --initial-branch "$SITE_BRANCH" "$SITE_DIR"
 			git -C "$SITE_DIR" remote add origin "$remote"
 			;;
-		*) fail "Cannot access $APT_SITE_REPOSITORY (git exit status $status)" ;;
+		*) fail "Cannot read $APT_SITE_REPOSITORY (git ls-remote exit status $status). See the preceding Git output; verify the repository URL and public access." ;;
 	esac
 	git -C "$SITE_DIR" config user.name "github-actions[bot]"
 	git -C "$SITE_DIR" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -152,7 +165,7 @@ index_suite() {
 
 push_site() {
 	git -C "$SITE_DIR" add -A
-	git -C "$SITE_DIR" commit --quiet -m "$1"
+	git -C "$SITE_DIR" commit -m "$1"
 	git_site -C "$SITE_DIR" push origin "$SITE_BRANCH"
 }
 
