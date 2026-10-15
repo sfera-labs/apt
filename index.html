@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sfera Labs apt repository</title>
+</head>
+<body>
+  <main>
+    <h1>Sfera Labs apt repository</h1>
+    <p>Install DKMS packages for Sfera Labs products on Raspberry Pi OS.</p>
+    <h2>Bootstrap the repository</h2>
+    <pre><code>curl -fLO https://apt.sferalabs.cc/bootstrap/sferalabs-archive-keyring_all.deb
+sudo apt install ./sferalabs-archive-keyring_all.deb
+sudo apt update</code></pre>
+    <p>Then install your product package, for example <code>sudo apt install stratopimax-dkms</code>.</p>
+    <p>See the <a href="https://github.com/sfera-labs/apt/blob/main/README.md">installation and migration instructions</a>.</p>
+  </main>
+</body>
+</html>
