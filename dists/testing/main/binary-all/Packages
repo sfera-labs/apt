@@ -1,0 +1,21 @@
+Package: stratopimax-dkms
+Architecture: all
+Version: 1.35-1
+Priority: optional
+Section: kernel
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Installed-Size: 317
+Depends: dkms (>= 2.1.0.0), device-tree-compiler
+Recommends: raspberrypi-kernel-headers
+Filename: pool/testing/stratopimax-dkms/stratopimax-dkms_1.35-1_all.deb
+Size: 40788
+MD5sum: 7fa51afe6025ef04483a09daf2c45e8e
+SHA1: e3fbf4a2dc4d95326a1ed35095c4b8748f5c55ce
+SHA256: ac2e418fb3f1b7a22ba74ee8b303a2e8078e718ba256469002c47d9a31dda4ca
+SHA512: 06935f88542cdf32c84885c3e887d3d6b6a9556e2eee9355df300a49dbae76eccc8f22980ca5ad31f9a298ff95265ce3c7ee321a12bb149d5b96e474edf1c83a
+Homepage: https://www.sferalabs.cc/
+Description: DKMS kernel module for stratopimax
+ This package provides the source and DKMS configuration for stratopimax.
+ DKMS builds the module locally for kernels with installed headers.
+ Device-tree overlays and udev rules are installed by the DKMS hooks.
+
