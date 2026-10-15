@@ -64,12 +64,17 @@ open_site() {
 }
 
 sync_public_files() {
-	local keyring_tmp="$SITE_DIR/$KEYRING_NAME.gpg.tmp"
+	local keyring_tmp="$SITE_DIR/$KEYRING_NAME.gpg.tmp" index_tmp site_url_replacement
 	[ -s "$PUBLIC_KEY" ] || fail "Missing public signing key $PUBLIC_KEY"
 	[ -f "$REPO_ROOT/site-config/index.html" ] || fail "Missing public landing page site-config/index.html"
-	if [ ! -f "$SITE_DIR/index.html" ] || ! cmp -s "$REPO_ROOT/site-config/index.html" "$SITE_DIR/index.html"; then
-		cp "$REPO_ROOT/site-config/index.html" "$SITE_DIR/index.html"
+	index_tmp="$(mktemp "$SITE_DIR/.index.html.XXXXXX")"
+	site_url_replacement="$(printf '%s' "$APT_SITE_URL" | escape_sed_replacement)"
+	sed "s|@APT_SITE_URL@|$site_url_replacement|g" "$REPO_ROOT/site-config/index.html" > "$index_tmp"
+	if [ ! -f "$SITE_DIR/index.html" ] || ! cmp -s "$index_tmp" "$SITE_DIR/index.html"; then
+		mv "$index_tmp" "$SITE_DIR/index.html"
 		CHANGED=1
+	else
+		rm -f "$index_tmp"
 	fi
 	if [ ! -f "$SITE_DIR/$KEYRING_NAME.asc" ] || ! cmp -s "$PUBLIC_KEY" "$SITE_DIR/$KEYRING_NAME.asc"; then
 		cp "$PUBLIC_KEY" "$SITE_DIR/$KEYRING_NAME.asc"
@@ -82,7 +87,14 @@ sync_public_files() {
 	else
 		rm -f "$keyring_tmp"
 	fi
-	if [ "$(cat "$SITE_DIR/CNAME" 2>/dev/null)" != "$SITE_HOST" ]; then
+	if [ "$SITE_USES_DEFAULT_GITHUB_PAGES" = yes ]; then
+		if [ -e "$SITE_DIR/CNAME" ] || [ -L "$SITE_DIR/CNAME" ]; then
+			log_info "Removing stale CNAME for GitHub Pages default host $SITE_HOST"
+			rm -f "$SITE_DIR/CNAME"
+			CHANGED=1
+		fi
+	elif [ "$(cat "$SITE_DIR/CNAME" 2>/dev/null)" != "$SITE_HOST" ]; then
+		log_info "Setting GitHub Pages custom domain to $SITE_HOST"
 		printf '%s\n' "$SITE_HOST" > "$SITE_DIR/CNAME"
 		CHANGED=1
 	fi

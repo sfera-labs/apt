@@ -17,7 +17,8 @@ install -d "$package_root/DEBIAN" "$package_root/usr/share/keyrings" "$package_r
 
 sed "s|@VERSION@|$version|g" "$REPO_ROOT/keyring-package/control.in" > "$package_root/DEBIAN/control"
 gpg --batch --yes --dearmor --output "$package_root/usr/share/keyrings/$KEYRING_NAME.gpg" "$PUBLIC_KEY"
-sed "s|@APT_SITE_URL@|$APT_SITE_URL|g" \
+site_url_replacement="$(printf '%s' "$APT_SITE_URL" | escape_sed_replacement)"
+sed "s|@APT_SITE_URL@|$site_url_replacement|g" \
 	"$REPO_ROOT/keyring-package/sferalabs.sources.in" > "$package_root/etc/apt/sources.list.d/sferalabs.sources"
 chmod 644 "$package_root/usr/share/keyrings/$KEYRING_NAME.gpg" "$package_root/etc/apt/sources.list.d/sferalabs.sources"
 
