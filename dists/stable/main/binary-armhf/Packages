@@ -28,3 +28,18 @@ SHA512: 0d71357b7e9f6533993cbff7264615877e595cfc37b1d91456b2c168001964c856f1be51
 Description: Sfera Labs apt repository keyring and source
  Installs the public signing key and stable apt source for Sfera Labs packages.
 
+Package: sferalabs-archive-keyring
+Architecture: all
+Version: 1.2
+Priority: optional
+Section: misc
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Filename: pool/stable/sferalabs-archive-keyring/sferalabs-archive-keyring_1.2_all.deb
+Size: 2002
+MD5sum: aecbb542d018b302d7e8667e0e6e9774
+SHA1: bde7b235b443df31742b0bf6162aa66ebcb14661
+SHA256: 01aca700f1ebb857c6f1be27474bb3ae437022ec8b0ff6b0d3adc47073b918b3
+SHA512: 7d33dd486d440d91818fccec19317c1399ea82816f9488c7907a64e864e6f4d80471e66c05f2b7192ca4cb000947ae5986621bb4875123c27e3675e6065eb21c
+Description: Sfera Labs apt repository keyring and source
+ Installs the public signing key and stable apt source for Sfera Labs packages.
+
