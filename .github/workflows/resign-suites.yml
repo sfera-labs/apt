@@ -1,0 +1,39 @@
+name: Resign apt suites
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apt-site
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      APT_SITE_URL: ${{ vars.APT_SITE_URL || 'https://apt.sferalabs.cc' }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Check out apt repository
+        uses: actions/checkout@v5
+
+      - name: Install repository tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y apt-utils curl dpkg-dev gnupg gpgv jq
+
+      - name: Resign suites
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          APT_SIGNING_KEY: ${{ secrets.APT_SIGNING_KEY }}
+          APT_SIGNING_KEY_PASSPHRASE: ${{ secrets.APT_SIGNING_KEY_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          bash scripts/apt-site.sh resign
