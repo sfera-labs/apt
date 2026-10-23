@@ -25,8 +25,7 @@ trap cleanup EXIT
 
 usage() {
 	printf '%s\n' \
-		"Usage: apt-site.sh publish-latest <module-repository>" \
-		"       apt-site.sh promote <package> <version>" \
+		"Usage: apt-site.sh publish-selection <module|all> <debian-version|empty> <testing|stable>" \
 		"       apt-site.sh publish-keyring" \
 		"       apt-site.sh resign" >&2
 	exit 2
@@ -192,34 +191,81 @@ commit_site() {
 	push_site "$message"
 }
 
-publish_latest() {
-	local module_repo="$1" api_base="https://api.github.com" repo_info page=1 page_json count release_json tag published_at \
-		asset_count asset_url module_version module_name expected_package package version architecture file
-	[[ "$module_repo" =~ ^sfera-labs/[A-Za-z0-9_.-]+$ ]] \
-		|| fail "Module repository must be a public sfera-labs/<repository> name"
-	TMP_DIR="$(mktemp -d)"
-	repo_info="$(curl -fsSL -H 'Accept: application/vnd.github+json' "$api_base/repos/$module_repo")" \
+module_repository_supported() {
+	local candidate
+	while IFS= read -r candidate; do
+		[ "$candidate" = "$1" ] && return 0
+	done <<< "$MODULE_CHOICES"
+	return 1
+}
+
+module_choices_from_workflow() {
+	local workflow="$REPO_ROOT/.github/workflows/publish-packages.yml"
+	[ -f "$workflow" ] || fail "Module workflow not found: $workflow"
+	sed -n '/^[[:space:]]*workflow_dispatch:/,/^[[:space:]]*permissions:/p' "$workflow" |
+		sed -n '/^[[:space:]]*inputs:/,/^[[:space:]]*jobs:/p' |
+		sed -n '/^[[:space:]]*module:/,/^[[:space:]]*version:/p' |
+		sed -n '/^[[:space:]]*options:/,/^[[:space:]]*version:/p' |
+		sed -n '/^[[:space:]]*-[[:space:]]*/ {
+			s/^[[:space:]]*-[[:space:]]*//
+			/^all[[:space:]]*$/d
+			p
+		}'
+}
+
+validate_module_repository() {
+	local module_repo="$1" repo_info
+	repo_info="$(curl -fsSL -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/$module_repo")" \
 		|| fail "Cannot read public repository $module_repo"
 	[ "$(jq -r '.owner.login' <<<"$repo_info")" = sfera-labs ] \
 		&& [ "$(jq -r '.private' <<<"$repo_info")" = false ] \
 		|| fail "$module_repo must be a public repository owned by sfera-labs"
+	MODULE_DEFAULT_BRANCH="$(jq -r '.default_branch' <<<"$repo_info")"
+	[ -n "$MODULE_DEFAULT_BRANCH" ] || fail "Cannot determine default branch for $module_repo"
+}
+
+latest_release_json() {
+	local module_repo="$1" page=1 page_json count
+	validate_module_repository "$module_repo"
 	: > "$TMP_DIR/releases.jsonl"
 	while :; do
 		page_json="$(curl -fsSL -H 'Accept: application/vnd.github+json' \
-			"$api_base/repos/$module_repo/releases?per_page=100&page=$page")" \
+			"https://api.github.com/repos/$module_repo/releases?per_page=100&page=$page")" \
 			|| fail "Cannot list releases for $module_repo"
 		count="$(jq 'length' <<<"$page_json")"
 		[ "$count" -gt 0 ] || break
 		printf '%s\n' "$page_json" >> "$TMP_DIR/releases.jsonl"
 		page=$((page + 1))
 	done
-	release_json="$(jq -s '[.[][] | select(.draft == false and .prerelease == false and .published_at != null)] | sort_by(.published_at) | last // empty' \
-		"$TMP_DIR/releases.jsonl")"
-	[ -n "$release_json" ] || fail "$module_repo has no published, non-prerelease release"
+	jq -s '[.[][] | select(.draft == false and .prerelease == false and .published_at != null)] | sort_by(.published_at) | last // empty' \
+		"$TMP_DIR/releases.jsonl"
+}
+
+download_release_deb() {
+	local module_repo="$1" requested_version="$2" output_file="$3"
+	local release_json tag module_version module_name expected_package asset_count asset_url
+	local package version architecture
+
+	if [ -n "$requested_version" ]; then
+		validate_module_repository "$module_repo"
+		module_version="${requested_version#*:}"
+		module_version="${module_version%-*}"
+		tag="v$module_version"
+		[[ "$tag" =~ ^v[0-9][A-Za-z0-9.+~_-]*$ ]] || fail "Cannot map Debian version $requested_version to a GitHub release tag"
+		release_json="$(curl -fsSL -H 'Accept: application/vnd.github+json' \
+			"https://api.github.com/repos/$module_repo/releases/tags/$tag")" \
+			|| fail "Cannot find release $tag for $module_repo"
+	else
+		release_json="$(latest_release_json "$module_repo")"
+		[ -n "$release_json" ] || return 2
+	fi
+
+	[ "$(jq -r '.draft' <<<"$release_json")" = false ] \
+		&& [ "$(jq -r '.prerelease' <<<"$release_json")" = false ] \
+		&& [ -n "$(jq -r '.published_at' <<<"$release_json")" ] \
+		|| fail "$module_repo release is not published, non-prerelease, and non-draft"
 	tag="$(jq -r '.tag_name' <<<"$release_json")"
-	published_at="$(jq -r '.published_at' <<<"$release_json")"
-	[[ "$tag" =~ ^v[0-9][A-Za-z0-9.+~_-]*$ ]] || fail "Latest release tag must use v<VERSION> format, got $tag"
-	module_version="${tag#v}"
+	[[ "$tag" =~ ^v[0-9][A-Za-z0-9.+~_-]*$ ]] || fail "Release tag must use v<VERSION> format, got $tag"
 	module_name="$(curl -fsSL "https://raw.githubusercontent.com/$module_repo/$tag/MODULE_NAME" | tr -d '[:space:]')" \
 		|| fail "Cannot read MODULE_NAME from $module_repo@$tag"
 	[[ "$module_name" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || fail "Invalid MODULE_NAME in $module_repo@$tag: $module_name"
@@ -227,34 +273,125 @@ publish_latest() {
 	asset_count="$(jq '[.assets[] | select(.name | endswith(".deb"))] | length' <<<"$release_json")"
 	[ "$asset_count" -eq 1 ] || fail "$module_repo@$tag must contain exactly one .deb asset, found $asset_count"
 	asset_url="$(jq -r '[.assets[] | select(.name | endswith(".deb"))][0].browser_download_url' <<<"$release_json")"
-	file="$TMP_DIR/package.deb"
-	curl -fsSL --retry 3 "$asset_url" -o "$file" || fail "Cannot download the .deb asset from $module_repo@$tag"
-	package="$(dpkg-deb --field "$file" Package)"
-	version="$(dpkg-deb --field "$file" Version)"
-	architecture="$(dpkg-deb --field "$file" Architecture)"
-	[ "$package" = "$expected_package" ] \
-		|| fail "Unexpected package $package from $module_repo; expected $expected_package from MODULE_NAME=$module_name"
-	[ "$architecture" = all ] || fail "Expected Architecture: all in $file"
-	case "$version" in
-		"$module_version"-*) ;;
-		*) fail "$file version $version does not match release tag $tag" ;;
-	esac
-	open_site
-	add_deb testing "$file"
-	commit_site testing "Publish $module_repo@$tag to testing"
-	echo "Published $package $version from $module_repo@$tag (released $published_at)"
+	curl -fsSL --retry 3 "$asset_url" -o "$output_file" || fail "Cannot download the .deb asset from $module_repo@$tag"
+	package="$(dpkg-deb --field "$output_file" Package)"
+	version="$(dpkg-deb --field "$output_file" Version)"
+	architecture="$(dpkg-deb --field "$output_file" Architecture)"
+	[ "$package" = "$expected_package" ] || fail "Unexpected package $package from $module_repo; expected $expected_package"
+	[ "$architecture" = all ] || fail "Expected Architecture: all in $output_file"
+	if [ -n "$requested_version" ] && [ "$version" != "$requested_version" ]; then
+		fail "$module_repo@$tag contains Debian version $version, not requested $requested_version"
+	fi
+	log_info "Selected $package $version from $module_repo@$tag"
 }
 
-promote_release() {
-	local package="$1" version="$2" source
-	[[ "$package" =~ ^[a-z0-9][a-z0-9+.-]*-dkms$ ]] || fail "Invalid DKMS package name: $package"
-	[[ "$version" != */* ]] && dpkg --validate-version "$version" \
-		|| fail "Invalid Debian package version: $version"
+module_package_name() {
+	local module_repo="$1" module_name
+	validate_module_repository "$module_repo"
+	module_name="$(curl -fsSL "https://raw.githubusercontent.com/$module_repo/$MODULE_DEFAULT_BRANCH/MODULE_NAME" | tr -d '[:space:]')" \
+		|| fail "Cannot read MODULE_NAME from $module_repo@$MODULE_DEFAULT_BRANCH"
+	[[ "$module_name" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || fail "Invalid MODULE_NAME in $module_repo@$MODULE_DEFAULT_BRANCH: $module_name"
+	printf '%s-dkms' "$module_name"
+}
+
+latest_testing_deb() {
+	local package="$1" candidate version latest_version="" latest_deb=""
+	for candidate in "$SITE_DIR/pool/testing/$package/"*_all.deb; do
+		[ -f "$candidate" ] || continue
+		version="$(dpkg-deb --field "$candidate" Version)"
+		if [ -z "$latest_deb" ] || dpkg --compare-versions "$version" gt "$latest_version"; then
+			latest_version="$version"
+			latest_deb="$candidate"
+		fi
+	done
+	[ -n "$latest_deb" ] || return 1
+	printf '%s' "$latest_deb"
+}
+
+add_deb_if_unpublished() {
+	local suite="$1" deb="$2" package version target
+	package="$(dpkg-deb --field "$deb" Package)"
+	version="$(dpkg-deb --field "$deb" Version)"
+	target="$SITE_DIR/pool/$suite/$package/${package}_${version}_all.deb"
+	if [ -e "$target" ]; then
+		if cmp -s "$deb" "$target"; then
+			log_info "Skipping $package $version: already published in $suite"
+		else
+			log_info "Skipping $package $version: already published in $suite with different bytes; existing package retained"
+		fi
+		return 0
+	fi
+	add_deb "$suite" "$deb"
+}
+
+publish_selection() {
+	local module="$1" requested_version="$2" requested_suite="$3"
+	local module_repo module_short deb package source selected=0 result
+	local -a selected_modules=()
+	MODULE_CHOICES="$(module_choices_from_workflow)" || fail "Cannot read module choices from publish-packages.yml"
+	[ -n "$MODULE_CHOICES" ] || fail "No module choices found in publish-packages.yml"
+
+	case "$requested_suite" in
+		testing|stable) ;;
+		*) fail "Suite must be testing or stable, got $requested_suite" ;;
+	esac
+	if [ -n "$requested_version" ]; then
+		dpkg --validate-version "$requested_version" || fail "Invalid Debian package version: $requested_version"
+	fi
+	if [ "$module" = all ]; then
+		[ -z "$requested_version" ] || fail "An exact version cannot be combined with module=all"
+		while IFS= read -r module_short; do
+			[ -n "$module_short" ] || continue
+			selected_modules+=("sfera-labs/$module_short")
+		done <<< "$MODULE_CHOICES"
+	else
+		module_repository_supported "$module" || fail "Unsupported module: $module"
+		selected_modules+=("sfera-labs/$module")
+	fi
+
+	TMP_DIR="$(mktemp -d)"
 	open_site
-	source="$SITE_DIR/pool/testing/$package/${package}_${version}_all.deb"
-	[ -f "$source" ] || fail "$package $version is not in testing"
-	add_deb stable "$source"
-	commit_site stable "Promote $package $version to stable"
+	for module_repo in "${selected_modules[@]}"; do
+		module_short="${module_repo#sfera-labs/}"
+		if [ "$requested_suite" = testing ]; then
+			deb="$TMP_DIR/${module_short}.deb"
+			if download_release_deb "$module_repo" "$requested_version" "$deb"; then
+				:
+			else
+				result=$?
+				if [ "$result" -eq 2 ] && [ "$module" = all ]; then
+					log_info "Skipping $module_repo: no published non-prerelease release"
+					continue
+				fi
+				fail "$module_repo has no eligible release"
+			fi
+			add_deb_if_unpublished testing "$deb"
+		else
+			package="$(module_package_name "$module_repo")"
+			if [ -n "$requested_version" ]; then
+				source="$SITE_DIR/pool/stable/$package/${package}_${requested_version}_all.deb"
+				if [ -e "$source" ]; then
+					log_info "Skipping $package $requested_version: already published in stable"
+					selected=$((selected + 1))
+					continue
+				fi
+				source="$SITE_DIR/pool/testing/$package/${package}_${requested_version}_all.deb"
+			else
+				source="$(latest_testing_deb "$package" || true)"
+			fi
+			if [ -z "$source" ] || [ ! -f "$source" ]; then
+				if [ "$module" = all ]; then
+					log_info "Skipping $module_repo: no package available in testing"
+					continue
+				fi
+				fail "$package ${requested_version:-<latest>} is not available in testing"
+			fi
+			add_deb_if_unpublished stable "$source"
+		fi
+		selected=$((selected + 1))
+	done
+	commit_site "$requested_suite" "Publish selected module packages to $requested_suite"
+	log_info "Processed $selected module package selection(s) for $requested_suite"
 }
 
 publish_keyring() {
@@ -298,8 +435,7 @@ resign_suites() {
 }
 
 case "${1:-}" in
-	publish-latest) [ "$#" -eq 2 ] || fail "Usage: apt-site.sh publish-latest <module-repository>"; publish_latest "$2" ;;
-	promote) [ "$#" -eq 3 ] || fail "Usage: apt-site.sh promote <package> <version>"; promote_release "$2" "$3" ;;
+	publish-selection) [ "$#" -eq 4 ] || fail "Usage: apt-site.sh publish-selection <module|all> <debian-version|empty> <testing|stable>"; publish_selection "$2" "$3" "$4" ;;
 	publish-keyring) [ "$#" -eq 1 ] || fail "Usage: apt-site.sh publish-keyring"; open_site; publish_keyring ;;
 	resign) [ "$#" -eq 1 ] || fail "Usage: apt-site.sh resign"; resign_suites ;;
 	*) usage ;;
