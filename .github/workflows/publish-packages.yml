@@ -9,7 +9,6 @@ on:
         required: true
         options:
           - all
-          - exo-sense-pi-kernel-module
           - iono-pi-kernel-module
           - iono-pi-max-kernel-module
           - iono-pi-v3-kernel-module
@@ -19,6 +18,7 @@ on:
           - strato-pi-kernel-module
           - strato-pi-max-kernel-module
           - strato-pi-plus-kernel-module
+          # - exo-sense-pi-kernel-module
       version:
         description: Exact Debian package version (e.g. 1.35-1); leave blank for latest in selected suite
         type: string
