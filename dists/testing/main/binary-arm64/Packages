@@ -1,3 +1,129 @@
+Package: ionopi-dkms
+Architecture: all
+Version: 1.34-1
+Priority: optional
+Section: kernel
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Installed-Size: 133
+Depends: dkms (>= 2.1.0.0), device-tree-compiler
+Recommends: linux-headers-raspi
+Filename: pool/testing/ionopi-dkms/ionopi-dkms_1.34-1_all.deb
+Size: 25832
+MD5sum: 18d72588b6e883883f65e36e28d28890
+SHA1: e1778ce57439d79803fe14662ca61f5887a77b8f
+SHA256: 6381705639a971a085e5fd3a895c0e734053ca12b7db6008d6e26030201b19fc
+SHA512: d5df37666aaff1385262b0e341bee3c94075d16bc4bea2fd1cbe681ffa095cd7be530a02819cd04cf8ddf9f95157a8d5d6f031a774ad25e438b555dcae1ae701
+Homepage: https://www.sferalabs.cc/
+Description: DKMS kernel module for ionopi
+ This package provides the source and DKMS configuration for ionopi.
+ DKMS builds the module locally for kernels with installed headers.
+ Device-tree overlays and udev rules are installed by the DKMS hooks.
+
+Package: ionopi-v3-dkms
+Architecture: all
+Version: 1.6-1
+Priority: optional
+Section: kernel
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Installed-Size: 200
+Depends: dkms (>= 2.1.0.0), device-tree-compiler
+Recommends: linux-headers-raspi
+Filename: pool/testing/ionopi-v3-dkms/ionopi-v3-dkms_1.6-1_all.deb
+Size: 35206
+MD5sum: c39b7c4cbfc5bacd3427309442dac87c
+SHA1: c2ad89b17f5c8250e0264ff96beff53a9813838c
+SHA256: 54ca2ba39be0abc064da6e9807f9e578b8f05ca358cb6ae947383997e25c094b
+SHA512: 23036850da250dd691c61df544cd3d4095fbb0c676381aff61717379b6316e5a7a11eed07e2be4d5e1b52788f7641495c84c62e8745377631ee16f4b8197ba90
+Homepage: https://www.sferalabs.cc/
+Description: DKMS kernel module for ionopi-v3
+ This package provides the source and DKMS configuration for ionopi-v3.
+ DKMS builds the module locally for kernels with installed headers.
+ Device-tree overlays and udev rules are installed by the DKMS hooks.
+
+Package: ionopimax-dkms
+Architecture: all
+Version: 1.32-1
+Priority: optional
+Section: kernel
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Installed-Size: 186
+Depends: dkms (>= 2.1.0.0), device-tree-compiler
+Recommends: linux-headers-raspi
+Filename: pool/testing/ionopimax-dkms/ionopimax-dkms_1.32-1_all.deb
+Size: 29542
+MD5sum: 7f50a3c30fd8d04dd4e10a2e21bc7615
+SHA1: d7ae2ae9d2546f0839636c00d91691a8b5487c3b
+SHA256: 8085c1cfe7bc307aeccf933fadeaab2d1e33bf05417ffc61f2e67743cdfd1700
+SHA512: e71c20db5ed6a644770cb38cdcf030c0fc5a126be428b02864ca73101e237f6a1b10e8e44a56ee40a894392261f3235033c4bbb5005c90ffb839c626d8fcd334
+Homepage: https://www.sferalabs.cc/
+Description: DKMS kernel module for ionopimax
+ This package provides the source and DKMS configuration for ionopimax.
+ DKMS builds the module locally for kernels with installed headers.
+ Device-tree overlays and udev rules are installed by the DKMS hooks.
+
+Package: rtc-pcf2131-dkms
+Architecture: all
+Version: 2.7-1
+Priority: optional
+Section: kernel
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Installed-Size: 112
+Depends: dkms (>= 2.1.0.0), device-tree-compiler
+Recommends: linux-headers-raspi
+Filename: pool/testing/rtc-pcf2131-dkms/rtc-pcf2131-dkms_2.7-1_all.deb
+Size: 25876
+MD5sum: cc277dadabf33edb1cbed202dacc76b6
+SHA1: 891cf86df592cb78224d592332d84176da6618a8
+SHA256: 29700f092cb7887a2b44458bafb3bca6e0274ca2a14c6dd9132d73da811aab77
+SHA512: 0856375528784187a3279f20f14067f864b8f7f8812182639245f84cf84e7079408c37d5ef71e4976111167c8f58d9f4d327d3c37c99b0a98530e2b561ae823c
+Homepage: https://www.sferalabs.cc/
+Description: DKMS kernel module for rtc-pcf2131
+ This package provides the source and DKMS configuration for rtc-pcf2131.
+ DKMS builds the module locally for kernels with installed headers.
+ Device-tree overlays and udev rules are installed by the DKMS hooks.
+
+Package: stratopi-dkms
+Architecture: all
+Version: 1.30-1
+Priority: optional
+Section: kernel
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Installed-Size: 264
+Depends: dkms (>= 2.1.0.0), device-tree-compiler
+Recommends: linux-headers-raspi
+Filename: pool/testing/stratopi-dkms/stratopi-dkms_1.30-1_all.deb
+Size: 39022
+MD5sum: 5caa6f8a33f487e323bc06d5c6b47c92
+SHA1: defdee7a3cee10669a59ebd5f56fdfc07da54793
+SHA256: 564f0862af309ba5bbdc9ab69fda57adc257bffd945e5e6f143de9cdc875cfca
+SHA512: d2a8467aefece076dc13c65dadf5f589f94be0f88305d8340556e474ad9b39ab7d24aaf21b3d6bcf1d15fa231fbb08531e8943a016e9a3cdaa5ebc296db008ae
+Homepage: https://www.sferalabs.cc/
+Description: DKMS kernel module for stratopi
+ This package provides the source and DKMS configuration for stratopi.
+ DKMS builds the module locally for kernels with installed headers.
+ Device-tree overlays and udev rules are installed by the DKMS hooks.
+
+Package: stratopifan-dkms
+Architecture: all
+Version: 1.8-1
+Priority: optional
+Section: kernel
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Installed-Size: 75
+Depends: dkms (>= 2.1.0.0), device-tree-compiler
+Recommends: linux-headers-raspi
+Filename: pool/testing/stratopifan-dkms/stratopifan-dkms_1.8-1_all.deb
+Size: 17932
+MD5sum: e7fab6b5feed237544cd1a77f6347d9b
+SHA1: e242becee23a60fbedce5d173cd44838e4bdd188
+SHA256: 128293c5b6ab710835a7db70a97b8473cfd2cc6c6012152e0ef22aa258d4b49d
+SHA512: 701fac688e069b566f6986f26537396a31df30eab3f13901e7ddafc0dba302ffa0e9388ea7df6d217819eb950e5d9e10fcbdc91fa6212d526facf58e8c78a16c
+Homepage: https://www.sferalabs.cc/
+Description: DKMS kernel module for stratopifan
+ This package provides the source and DKMS configuration for stratopifan.
+ DKMS builds the module locally for kernels with installed headers.
+ Device-tree overlays and udev rules are installed by the DKMS hooks.
+
 Package: stratopimax-dkms
 Architecture: all
 Version: 1.35-1
@@ -16,6 +142,48 @@ SHA512: 06935f88542cdf32c84885c3e887d3d6b6a9556e2eee9355df300a49dbae76eccc8f2298
 Homepage: https://www.sferalabs.cc/
 Description: DKMS kernel module for stratopimax
  This package provides the source and DKMS configuration for stratopimax.
+ DKMS builds the module locally for kernels with installed headers.
+ Device-tree overlays and udev rules are installed by the DKMS hooks.
+
+Package: stratopimax-dkms
+Architecture: all
+Version: 1.36-1
+Priority: optional
+Section: kernel
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Installed-Size: 221
+Depends: dkms (>= 2.1.0.0), device-tree-compiler
+Recommends: linux-headers-raspi
+Filename: pool/testing/stratopimax-dkms/stratopimax-dkms_1.36-1_all.deb
+Size: 29034
+MD5sum: de1aa8a2b9db5787c32985c9eb6c0238
+SHA1: 15c369b24c40e3773220652c1aecaa1e400da552
+SHA256: dca35983e50a177577b0a927abf2531eb86e3d4b30bfc06be181d4ca30248637
+SHA512: d1338a50e389ec7b9f6104f306df60d801488b359a57293427a1343ae8ca2cbbe58cc64ed7fe10eae0df1b46474fe8a9e774e029512aadee15dedea5f1836279
+Homepage: https://www.sferalabs.cc/
+Description: DKMS kernel module for stratopimax
+ This package provides the source and DKMS configuration for stratopimax.
+ DKMS builds the module locally for kernels with installed headers.
+ Device-tree overlays and udev rules are installed by the DKMS hooks.
+
+Package: stratopiplus-dkms
+Architecture: all
+Version: 1.3-1
+Priority: optional
+Section: kernel
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Installed-Size: 183
+Depends: dkms (>= 2.1.0.0), device-tree-compiler
+Recommends: linux-headers-raspi
+Filename: pool/testing/stratopiplus-dkms/stratopiplus-dkms_1.3-1_all.deb
+Size: 34938
+MD5sum: c10708aa033294de9886d5b9cfb77e3a
+SHA1: d182d0eb126cccdcdc7b2e4121832f5874c757c6
+SHA256: 3612de78b26bc1c4a380dfe0a15f60a31fc3976166bb86fc5b10248a5aeb57fc
+SHA512: e7cbc2d7d871beb135782b7f63033a5c62b591e75c188583c8ac7155b842d72aa18847ec267a56a9e368ca8265a2aed08bc3e74bd467db66bef3578eba99b766
+Homepage: https://www.sferalabs.cc/
+Description: DKMS kernel module for stratopiplus
+ This package provides the source and DKMS configuration for stratopiplus.
  DKMS builds the module locally for kernels with installed headers.
  Device-tree overlays and udev rules are installed by the DKMS hooks.
 
