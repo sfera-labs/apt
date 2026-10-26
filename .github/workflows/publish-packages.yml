@@ -17,7 +17,7 @@ on:
           - strato-pi-kernel-module
           - strato-pi-max-kernel-module
           - strato-pi-plus-kernel-module
-          # - exo-sense-pi-kernel-module
+          - exo-sense-pi-kernel-module
       version:
         description: Exact Debian package version (e.g. 1.35-1); leave blank for latest in selected suite
         type: string
