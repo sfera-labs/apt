@@ -1,3 +1,24 @@
+Package: exosensepi-dkms
+Architecture: all
+Version: 2.22-1
+Priority: optional
+Section: kernel
+Maintainer: Sfera Labs <support@sferalabs.cc>
+Installed-Size: 254
+Depends: dkms (>= 2.1.0.0), device-tree-compiler
+Recommends: linux-headers-raspi
+Filename: pool/stable/exosensepi-dkms/exosensepi-dkms_2.22-1_all.deb
+Size: 43782
+MD5sum: f873580b6fde3ce653fbc0b4ce2b97b6
+SHA1: b5ac00ad0fcbfa8376523d5aa091bee8eaa5eece
+SHA256: 10230cdeb20fdddb55875a938bf934edf19db9267eaae97f54a0f56bbcbff7b8
+SHA512: 0181cd94f5890f417723df38c188c8a535496525d02ce929f520636d182d69320cd72a04b93aae45077f5e6bb7ef74aa06ae5e00961656b089d24e54d2a9bf53
+Homepage: https://www.sferalabs.cc/
+Description: DKMS kernel module for exosensepi
+ This package provides the source and DKMS configuration for exosensepi.
+ DKMS builds the module locally for kernels with installed headers.
+ Device-tree overlays and udev rules are installed by the DKMS hooks.
+
 Package: ionopi-dkms
 Architecture: all
 Version: 1.34-1
