@@ -12,7 +12,6 @@ on:
           - iono-pi-kernel-module
           - iono-pi-max-kernel-module
           - iono-pi-v3-kernel-module
-          - max14912-kernel-module
           - rtc-pcf2131
           - strato-pi-fan-kernel-module
           - strato-pi-kernel-module
